@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cf_ai Quick Chat</title>
+    <style>
+      :root {
+        --bg: #0b0f19;
+        --panel: rgba(255, 255, 255, 0.06);
+        --panel2: rgba(255, 255, 255, 0.08);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.65);
+        --border: rgba(255, 255, 255, 0.12);
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        --radius: 16px;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        color: var(--text);
+        background:
+          radial-gradient(1200px 800px at 15% 10%, rgba(96, 165, 250, 0.22), transparent 55%),
+          radial-gradient(1000px 700px at 85% 20%, rgba(167, 139, 250, 0.18), transparent 55%),
+          radial-gradient(900px 700px at 40% 95%, rgba(34, 211, 238, 0.12), transparent 50%),
+          var(--bg);
+        display: flex;
+        justify-content: center;
+        padding: 28px 14px;
+      }
+
+      .wrap {
+        width: min(880px, 100%);
+      }
+
+      .card {
+        background: linear-gradient(180deg, var(--panel), rgba(255, 255, 255, 0.03));
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .header {
+        padding: 18px 18px 14px 18px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .title {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 18px;
+        letter-spacing: 0.2px;
+      }
+
+      .subtitle {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .pill {
+        font-size: 12px;
+        color: var(--muted);
+        border: 1px solid var(--border);
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        white-space: nowrap;
+      }
+
+      .content {
+        padding: 14px;
+      }
+
+      #log {
+        height: min(68vh, 640px);
+        overflow: auto;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.18);
+      }
+
+      .msg {
+        display: flex;
+        gap: 10px;
+        margin: 10px 0;
+        align-items: flex-start;
+      }
+
+      .avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        display: grid;
+        place-items: center;
+        font-size: 14px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.06);
+        flex: 0 0 auto;
+      }
+
+      .bubble {
+        max-width: 85%;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.06);
+        line-height: 1.35;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .meta {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .you .avatar {
+        background: rgba(96, 165, 250, 0.18);
+        border-color: rgba(96, 165, 250, 0.35);
+      }
+      .you .bubble {
+        background: rgba(96, 165, 250, 0.12);
+        border-color: rgba(96, 165, 250, 0.30);
+      }
+
+      .ai .avatar {
+        background: rgba(167, 139, 250, 0.16);
+        border-color: rgba(167, 139, 250, 0.33);
+      }
+      .ai .bubble {
+        background: rgba(167, 139, 250, 0.10);
+        border-color: rgba(167, 139, 250, 0.28);
+      }
+
+      .composer {
+        margin-top: 12px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      input {
+        flex: 1;
+        padding: 12px 12px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+        outline: none;
+      }
+      input::placeholder { color: rgba(255,255,255,0.45); }
+      input:focus { border-color: rgba(255,255,255,0.25); }
+
+      button {
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        cursor: pointer;
+        transition: transform 0.04s ease, background 0.15s ease, border-color 0.15s ease;
+      }
+      button:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255,255,255,0.20); }
+      button:active { transform: translateY(1px); }
+
+      .ghost {
+        color: var(--muted);
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .status {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 10px;
+        padding: 0 2px;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .kbd {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 11px;
+        color: rgba(255,255,255,0.7);
+        border: 1px solid var(--border);
+        padding: 3px 6px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <div class="header">
+          <div class="title">
+            <h1>cf_ai Quick Chat</h1>
+            <div class="subtitle">Workers AI (Llama 3.3) + Durable Objects memory</div>
+          </div>
+          <div class="pill" id="sessionPill">session: default</div>
+        </div>
+
+        <div class="content">
+          <div id="log" aria-live="polite"></div>
+
+          <div class="composer">
+            <input id="text" placeholder="Type a message…" autocomplete="off" />
+            <div class="row">
+              <button id="sendBtn" type="button">Send</button>
+              <button id="resetBtn" type="button" class="ghost">Reset</button>
+            </div>
+          </div>
+
+          <div class="status">
+            <div>Tip: press <span class="kbd">Enter</span> to send</div>
+            <div id="statusText">Ready</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const log = document.getElementById("log");
+      const input = document.getElementById("text");
+      const sendBtn = document.getElementById("sendBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const statusText = document.getElementById("statusText");
+      const sessionPill = document.getElementById("sessionPill");
+
+      // Keep it simple: one room ("default") unless you want per-user sessions
+      const sessionId = "default";
+      sessionPill.textContent = "session: " + sessionId;
+
+      function setStatus(s) {
+        statusText.textContent = s;
+      }
+
+      function addMessage(who, text) {
+        const row = document.createElement("div");
+        row.className = "msg " + (who === "You" ? "you" : "ai");
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = who === "You" ? "Y" : "AI";
+
+        const bubble = document.createElement("div");
+        bubble.className = "bubble";
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+        meta.textContent = who;
+
+        const body = document.createElement("div");
+        body.textContent = text;
+
+        bubble.appendChild(meta);
+        bubble.appendChild(body);
+
+        row.appendChild(avatar);
+        row.appendChild(bubble);
+
+        log.appendChild(row);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      addMessage("AI", "Hi! Ask me anything.");
+
+      async function send() {
+        const message = input.value.trim();
+        if (!message) return;
+
+        addMessage("You", message);
+        input.value = "";
+        input.focus();
+
+        setStatus("Thinking…");
+        sendBtn.disabled = true;
+        resetBtn.disabled = true;
+
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message })
+          });
+
+          const data = await res.json();
+          addMessage("AI", data.reply || "(no reply)");
+          setStatus("Ready");
+        } catch (err) {
+          addMessage("AI", "Oops — request failed. Check the dev console / Worker logs.");
+          setStatus("Error");
+        } finally {
+          sendBtn.disabled = false;
+          resetBtn.disabled = false;
+        }
+      }
+
+      async function resetMemory() {
+        setStatus("Resetting…");
+        resetBtn.disabled = true;
+        sendBtn.disabled = true;
+
+        try {
+          await fetch("/api/reset", { method: "POST" });
+          log.innerHTML = "";
+          addMessage("AI", "Memory cleared.");
+          setStatus("Ready");
+        } catch (err) {
+          addMessage("AI", "Reset failed. Check logs.");
+          setStatus("Error");
+        } finally {
+          resetBtn.disabled = false;
+          sendBtn.disabled = false;
+          input.focus();
+        }
+      }
+
+      sendBtn.addEventListener("click", send);
+      resetBtn.addEventListener("click", resetMemory);
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          send();
+        }
+      });
+    </script>
+  </body>
+</html>
